@@ -1,7 +1,7 @@
 import net from 'node:net';
 import dgram from 'node:dgram';
 import { Mux } from './mux.js';
-import { decodeDest, encodeDest, createSocks5Server } from './socks5.js';
+import { decodeDest, encodeDest, normalizeDestHost, createSocks5Server } from './socks5.js';
 import { dialChannel, listenChannel, PROFILES } from './transports.js';
 import { logger } from './log.js';
 
@@ -242,7 +242,12 @@ export class TunnelRuntime {
         stream.on('readable', onReadable);
         onReadable();
       });
-      const target = net.connect({ host: dest.host, port: dest.port });
+      // A bracketed IPv6 literal from the SOCKS header is not a valid hostname.
+      // Force IPv4 for domain names too: many exit servers resolve AAAA first and
+      // then fail, which shows up as Instagram/HTTPS disconnects.
+      const dialHost = normalizeDestHost(dest.host);
+      const family = net.isIP(dialHost) === 6 ? 6 : 4;
+      const target = net.connect({ host: dialHost, port: dest.port, family });
       await new Promise((resolve, reject) => {
         target.once('connect', resolve);
         target.once('error', reject);

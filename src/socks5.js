@@ -4,9 +4,15 @@ import { logger } from './log.js';
 
 const log = logger('socks5');
 
+/** SOCKS5 و decodeDest آدرس IPv6 را با کروشه میدهند؛ قبل از dial/encode باید پاک شوند. */
+export function normalizeDestHost(value) {
+  const h = String(value || '').trim();
+  return h.startsWith('[') && h.endsWith(']') ? h.slice(1, -1) : h;
+}
+
 /** Encode/decode the destination header carried as the first bytes of a tunnel stream. */
 export function encodeDest({ host, port }) {
-  const h = String(host);
+  const h = normalizeDestHost(host);
   if (net.isIPv4(h)) {
     const out = Buffer.alloc(1 + 4 + 2);
     out[0] = 1;

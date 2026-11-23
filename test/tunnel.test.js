@@ -4,8 +4,19 @@ import net from 'node:net';
 import './helpers.js';
 import { echoServer, freePort, waitFor } from './helpers.js';
 import { TunnelRuntime } from '../src/tunnel.js';
+import { encodeDest, decodeDest, normalizeDestHost } from '../src/socks5.js';
 
 const TOKEN = 'tunnel-test-token';
+
+test('destination header strips SOCKS IPv6 brackets and keeps a real IPv6 literal', () => {
+  assert.equal(normalizeDestHost('[2001:4860:4802:32::78]'), '2001:4860:4802:32::78');
+  assert.equal(normalizeDestHost('ifconfig.me'), 'ifconfig.me');
+  const encoded = encodeDest({ host: '[2001:4860:4802:32::78]', port: 443 });
+  assert.equal(encoded[0], 4); // ATYP IPv6, not a bracketed domain
+  const decoded = decodeDest(encoded);
+  assert.equal(decoded.port, 443);
+  assert.equal(normalizeDestHost(decoded.host), '2001:4860:4802:32:0:0:0:78');
+});
 
 /** Minimal SOCKS5 client: greeting, then CONNECT for a domain target. */
 function socksConnect(port, host, targetPort) {
