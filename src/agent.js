@@ -9,6 +9,7 @@ import { attachBenchResponder, runBench } from './benchproto.js';
 import { Mux } from './mux.js';
 import { logger } from './log.js';
 import { DATA_DIR, ensureDir, uid } from './util.js';
+import { VERSION } from './manager.js';
 
 const log = logger('agent');
 
@@ -73,7 +74,7 @@ export class Agent {
             ok: true,
             id: this.id,
             name: this.name,
-            version: '0.1.0',
+            version: VERSION,
             uptimeSec: Math.floor((Date.now() - this.startedAt) / 1000),
             transports: TRANSPORTS,
             tunnels: [...this.tunnels.values()].map((t) => t.status()),

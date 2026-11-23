@@ -56,6 +56,11 @@ echo "==> نصب وابستگیها"
 cd "$DIR"
 npm ci --omit=dev --silent
 
+echo "==> نصب فرمانهای ترمینالی"
+chmod +x "$DIR/bin/nahr.js" "$DIR/bin/nahr-manager.js"
+ln -sfn "$DIR/bin/nahr.js" /usr/local/bin/nahr
+ln -sfn "$DIR/bin/nahr-manager.js" /usr/local/bin/nahr-manager
+
 echo "==> ایجاد کاربر و مسیرهای داده"
 id -u nahr >/dev/null 2>&1 || useradd --system --home-dir /var/lib/nahr --shell /usr/sbin/nologin nahr
 mkdir -p /var/lib/nahr/panel /var/lib/nahr/agent
@@ -155,5 +160,8 @@ cat <<EOF
     systemctl status nahr-panel nahr-agent
   لاگ:
     journalctl -u nahr-panel -f
+
+   منوی ترمینالی (نصب، پنل، ایجنت، لاگ و حذف):
+     sudo nahr-manager
 ============================================================
 EOF

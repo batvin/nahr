@@ -4,65 +4,116 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>نهر — تونل رمزنگاری شده با محک داخلی</title>
-    <meta name="description" content="نهر: تونل رمزنگاری شده، پنل وب و محک برای یافتن بهترین ترنسپورت میان سرورها" />
+    <meta name="description" content="نهر: تونل رمزنگاری شده، پنل وب فارسی، منوی ترمینالی و محک برای یافتن بهترین ترنسپورت میان سرورها" />
     <link rel="icon" href="/favicon.svg" />
     <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/site/motion.css" />
+    <script src="/site/site.js" defer></script>
   </head>
   <body>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow" aria-hidden="true"></div>
+    <div class="scroll-progress"><i id="scroll-progress"></i></div>
+
     <header><div class="wrap">
       <a class="logo" href="/"><img src="/favicon.svg" alt="" /> نهر</a>
       <nav>
-        <a href="#features">ویژگیها</a><a href="#transports">ترنسپورتها</a><a href="#bench">محک</a>
-        <a href="/docs">مستندات</a><a class="btn primary" href="/panel">ورود به پنل</a>
+        <a href="#features">ویژگیها</a><a href="#flow">معماری</a><a href="#transports">ترنسپورتها</a>
+        <a href="#bench">محک</a><a href="#manager">ترمینال</a><a href="/docs">مستندات</a>
+        <a class="btn primary" href="/panel">ورود به پنل</a>
       </nav>
     </div></header>
 
     <main class="wrap">
-      <div class="hero">
-        <div>
-          <div class="kicker">تونل امن · پنل وب · محک هوشمند</div>
+      <section class="hero">
+        <div class="hero-copy reveal">
+          <div class="kicker"><span class="live-dot"></span> تونل امن · پنل وب · محک هوشمند · منوی ترمینالی</div>
           <h1>آب از دل کوه،<br /><em>ترافیک از دل تونل</em></h1>
           <p class="lead">نهر دو سرور را با یک تونل رمزنگاری شده به هم وصل میکند، ترافیک TCP و UDP کاربران را جابهجا میکند و با «محک» روی مسیر شما مشخص میکند کدام ترنسپورت بهتر است — نه روی کاغذ، روی همان خطی که شما استفاده میکنید.</p>
           <div class="hero-actions">
-            <a class="btn primary" href="/panel">باز کردن پنل ←</a>
-            <a class="btn" href="/docs">شروع سریع</a>
+            <a class="btn primary" href="#install">نصب تکخطی ←</a>
+            <a class="btn" href="/panel">باز کردن پنل</a>
+          </div>
+          <div class="hero-command" data-copy="curl -fsSL https://raw.githubusercontent.com/batvin/nahr/main/scripts/quick-install.sh | sudo bash">
+            <code>curl -fsSL …/quick-install.sh | sudo bash</code>
+            <button type="button" aria-label="کپی دستور">⧉</button>
+          </div>
+          <div class="hero-stats">
+            <span><b>۵</b> ترنسپورت</span><span><b>۲</b> جهت محک</span><span><b>۰</b> وابستگی اضافی</span>
           </div>
         </div>
-        <div class="flow">
-          <svg viewBox="0 0 460 230" role="img" aria-label="نمودار جریان کاربران به ورودی، تونل و خروجی">
-            <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#42a5ff"/><stop offset="1" stop-color="#2fe0bd"/></linearGradient></defs>
-            <rect x="8" y="86" width="92" height="58" rx="12" fill="#12263a" stroke="#2b4a60"/>
-            <text x="54" y="121" fill="#dcecf5" font-size="14" text-anchor="middle" font-family="sans-serif">کاربران</text>
-            <rect x="176" y="86" width="104" height="58" rx="12" fill="#12332f" stroke="#2fe0bd" stroke-opacity=".55"/>
-            <text x="228" y="112" fill="#dcecf5" font-size="14" text-anchor="middle" font-family="sans-serif">ورودی</text>
-            <text x="228" y="131" fill="#8ca6b9" font-size="10" text-anchor="middle" font-family="monospace">SOCKS · 1080</text>
-            <rect x="348" y="86" width="100" height="58" rx="12" fill="#12263a" stroke="#2b4a60"/>
-            <text x="398" y="121" fill="#dcecf5" font-size="14" text-anchor="middle" font-family="sans-serif">خروجی</text>
-            <path d="M100 115h76" stroke="url(#g)" stroke-width="2" stroke-dasharray="5 6"/>
-            <path d="M280 115h68" stroke="url(#g)" stroke-width="2" stroke-dasharray="5 6"/>
-            <path d="M105 145c40 42 150 42 260 0" fill="none" stroke="#2fe0bd" stroke-width="1.5" stroke-dasharray="4 7" opacity=".75"/>
-            <rect x="150" y="180" width="180" height="30" rx="8" fill="#0d2330" stroke="#2fe0bd" stroke-opacity=".35"/>
-            <text x="240" y="200" fill="#2fe0bd" font-size="11" text-anchor="middle" font-family="monospace">X25519 · AES-256-GCM · MUX</text>
-            <text x="230" y="55" fill="#8ca6b9" font-size="11" text-anchor="middle" font-family="sans-serif">ترافیک TCP و UDP از میان تونل</text>
-          </svg>
-          <div class="flow-caption"> پنج ترنسپورت · دو جهت · رمزنگاری سرتاسری </div>
-        </div>
-      </div>
 
-      <section id="features">
-        <h2>آنچه نهر دارد</h2>
-        <p class="sub">همه چیز در یک باینری کوچک و یک پنل تحت وب</p>
-        <div class="cards">
-          <div class="card"><div class="ico">⛏</div><h3>پنج ترنسپورت</h3><p>TCP، TCP MUX، WebSocket، WSS و UDP مهرومومشده با ARQ. هرکدام برای مسیری متفاوت ساخته شده.</p></div>
-          <div class="card"><div class="ico">🔐</div><h3>امنیت پیشفرض</h3><p>دست دادن کلید X25519، احراز هویت متقابل با توکن و رمزنگاری AES-256-GCM روی هر بسته.</p></div>
-          <div class="card"><div class="ico">🧭</div><h3>پنل وب کامل</h3><p>نقشه زنده، سرورها، تانلها، گزارشات، تنظیمات و اعمال مستقیم نتیجهٔ محک.</p></div>
-          <div class="card"><div class="ico">📊</div><h3>محک واقعی</h3><p>دانلود و آپلود، تأخیر بی کار و زیر بار، لرزش و اتلاف؛ سپس امتیازدهی وزندار و معرفی بهترین.</p></div>
-          <div class="card"><div class="ico">🔄</div><h3>خود ترمیمی</h3><p>در حالت مستقیم، اگر اتصال تونل بیفتد به طور خودکار دوباره وصل میشود و جریانها منتقل میشوند.</p></div>
-          <div class="card"><div class="ico">🎮</div><h3>TCP و UDP</h3><p>پروکسی SOCKS5 شامل CONNECT و UDP ASSOCIATE؛ مناسب DNS، بازی و ترافیک بلادرنگ.</p></div>
+        <div class="hero-visual reveal" aria-hidden="true">
+          <div class="scene3d">
+            <div class="grid-floor"></div>
+            <div class="tunnel">
+              <span class="ring" style="--i:0"></span><span class="ring" style="--i:1"></span>
+              <span class="ring" style="--i:2"></span><span class="ring" style="--i:3"></span>
+              <span class="ring" style="--i:4"></span><span class="ring" style="--i:5"></span>
+              <span class="ring" style="--i:6"></span><span class="ring" style="--i:7"></span>
+              <span class="ring" style="--i:8"></span>
+              <span class="packet" style="--i:0"></span><span class="packet" style="--i:1"></span>
+              <span class="packet" style="--i:2"></span><span class="packet" style="--i:3"></span>
+              <span class="core">نهر</span>
+            </div>
+            <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+          </div>
+          <div class="visual-label">X25519 · AES-256-GCM · MUX</div>
         </div>
       </section>
 
-      <section id="transports">
+      <div class="marquee" aria-hidden="true"><div>
+        <span>TCP MUX</span><b>✦</b><span>WEBSOCKET</span><b>✦</b><span>UDP + ARQ</span><b>✦</b>
+        <span>WSS</span><b>✦</b><span>SOCKS5</span><b>✦</b><span>BENCHMARK</span><b>✦</b>
+        <span>TCP MUX</span><b>✦</b><span>WEBSOCKET</span><b>✦</b><span>UDP + ARQ</span><b>✦</b>
+        <span>WSS</span><b>✦</b><span>SOCKS5</span><b>✦</b><span>BENCHMARK</span><b>✦</b>
+      </div></div>
+
+      <section id="features" class="reveal">
+        <h2>آنچه نهر دارد</h2>
+        <p class="sub">همه چیز در یک باینری کوچک، یک پنل تحت وب و یک منوی ترمینالی</p>
+        <div class="cards">
+          <div class="card" data-tilt><div class="ico">⛏</div><h3>پنج ترنسپورت</h3><p>TCP، TCP MUX، WebSocket، WSS و UDP مهرومومشده با ARQ. هرکدام برای مسیری متفاوت ساخته شده.</p></div>
+          <div class="card" data-tilt><div class="ico">🔐</div><h3>امنیت پیشفرض</h3><p>دست دادن کلید X25519، احراز هویت متقابل با توکن و رمزنگاری AES-256-GCM روی هر بسته.</p></div>
+          <div class="card" data-tilt><div class="ico">🧭</div><h3>پنل وب کامل</h3><p>نقشه زنده، سرورها، تانلها، گزارشات، تنظیمات و اعمال مستقیم نتیجهٔ محک.</p></div>
+          <div class="card" data-tilt><div class="ico">📊</div><h3>محک واقعی</h3><p>دانلود و آپلود، تأخیر بی کار و زیر بار، لرزش و اتلاف؛ سپس امتیازدهی وزندار و معرفی بهترین.</p></div>
+          <div class="card" data-tilt><div class="ico">🔄</div><h3>خود ترمیمی</h3><p>در حالت مستقیم، اگر اتصال تونل بیفتد به طور خودکار دوباره وصل میشود و جریانها منتقل میشوند.</p></div>
+          <div class="card" data-tilt><div class="ico">🎮</div><h3>TCP و UDP</h3><p>پروکسی SOCKS5 شامل CONNECT و UDP ASSOCIATE؛ مناسب DNS، بازی و ترافیک بلادرنگ.</p></div>
+        </div>
+      </section>
+
+      <section id="flow" class="flow-section reveal">
+        <div class="flow-head">
+          <h2>جریان ترافیک، زنده و رمزنگاری شده</h2>
+          <p class="sub">کاربر → ورودی → تونل → خروجی → مقصد</p>
+        </div>
+        <div class="flow">
+          <svg viewBox="0 0 720 260" role="img" aria-label="نمودار جریان کاربران به ورودی، تونل و خروجی">
+            <defs>
+              <linearGradient id="g" x1="0" x2="1"><stop stop-color="#42a5ff"/><stop offset="1" stop-color="#2fe0bd"/></linearGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <path id="route" d="M110 118 H245 M470 118 H620"/>
+              <path id="routeBack" d="M620 168 H470 M245 168 H110"/>
+            </defs>
+            <rect x="20" y="86" width="120" height="64" rx="14" fill="#12263a" stroke="#2b4a60"/>
+            <text x="80" y="124" fill="#dcecf5" font-size="15" text-anchor="middle" font-family="sans-serif">کاربران</text>
+            <rect x="245" y="76" width="225" height="104" rx="18" fill="#0d2a2a" stroke="#2fe0bd" stroke-opacity=".6"/>
+            <text x="357" y="106" fill="#dcecf5" font-size="16" text-anchor="middle" font-family="sans-serif">تونل نهر</text>
+            <text x="357" y="130" fill="#8ca6b9" font-size="11" text-anchor="middle" font-family="monospace">MUX · ENCRYPTED</text>
+            <text x="357" y="154" fill="#2fe0bd" font-size="11" text-anchor="middle" font-family="monospace">X25519 / AES-GCM</text>
+            <rect x="470" y="86" width="150" height="64" rx="14" fill="#12263a" stroke="#2b4a60"/>
+            <text x="545" y="124" fill="#dcecf5" font-size="15" text-anchor="middle" font-family="sans-serif">خروجی</text>
+            <use href="#route" stroke="url(#g)" stroke-width="2.5" stroke-dasharray="7 8" class="dash"/>
+            <use href="#routeBack" stroke="#42a5ff" stroke-width="1.5" stroke-dasharray="4 9" opacity=".55" class="dash-back"/>
+            <circle r="5" fill="#2fe0bd" filter="url(#glow)"><animateMotion dur="3.4s" repeatCount="indefinite"><mpath href="#route"/></animateMotion></circle>
+            <circle r="4" fill="#42a5ff" filter="url(#glow)"><animateMotion dur="4.1s" begin="-1.4s" repeatCount="indefinite"><mpath href="#routeBack"/></animateMotion></circle>
+            <text x="360" y="34" fill="#8ca6b9" font-size="11" text-anchor="middle" font-family="sans-serif">پنج ترنسپورت · دو جهت · رمزنگاری سرتاسری</text>
+            <text x="357" y="222" fill="#2fe0bd" font-size="11" text-anchor="middle" font-family="monospace">SOCKS5 · 1080</text>
+          </svg>
+        </div>
+      </section>
+
+      <section id="transports" class="reveal">
         <h2>کدام ترنسپورت را انتخاب کنیم؟</h2>
         <p class="sub">قاعدهٔ کلی — ولی محک همیشه حرف آخر را میزند</p>
         <table>
@@ -76,35 +127,75 @@
         </table>
       </section>
 
-      <section id="bench" class="split">
+      <section id="bench" class="split reveal">
         <div>
           <h2>محک، تصمیمگیرندهٔ نهایی</h2>
           <p class="sub">بعد از ساخت تانل، محک تمام ترنسپورتها را در دو جهت امتحان میکند و نتایج را رتبهبندی میکند.</p>
           <ul>
-            <li>کاوش سریع: آیا ترنسپورت از مسیر عبور میکند و تأخیرش چقدر است؟</li>
+            <li>کاوش سریع: آیا ترنسپورت عبور میکند و تأخیرش چقدر است؟</li>
             <li>آزمون سرعت روی بهترین گزینهها: دانلود و آپلود واقعی</li>
-            <li>امتیاز ترکیبی: ۵۰٪ سرعت، ۳۰٪ تأخیر، ۲۰٪ پایداری (قابل تغییر با پروفایل)</li>
+            <li>امتیاز ترکیبی: ۵۰٪ سرعت، ۳۰٪ تأخیر، ۲۰٪ پایداری</li>
             <li>یک کلیک برای اعمال بهترین نتیجه روی تانل</li>
           </ul>
         </div>
-        <div class="mock">
-          <div class="score"><div class="ring">92</div><div><b style="font-family:var(--mono)">TCP MUX · direct</b><div class="small" style="color:var(--muted)">سریعترین و پایدارترین مسیر</div></div></div>
-          <div class="bar"><i style="width:92%"></i></div>
-          <div class="mock-row"><span>دانلود</span><b>612.3 Mbps</b></div>
-          <div class="mock-row"><span>آپلود</span><b>587.1 Mbps</b></div>
-          <div class="mock-row"><span>تأخیر میانه</span><b>61.2 ms</b></div>
-          <div class="mock-row"><span>اتلاف</span><b>0.4 %</b></div>
+        <div class="mock bench-card" data-tilt>
+          <div class="score"><div class="ring score-ring"><span data-count="92">92</span></div><div><b style="font-family:var(--mono)">TCP MUX · direct</b><div class="small" style="color:var(--muted)">سریعترین و پایدارترین مسیر</div></div></div>
+          <div class="bar"><i style="--w:92%"></i></div>
+          <div class="mock-row"><span>دانلود</span><b><span data-count="612.3" data-decimals="1">612.3</span> Mbps</b></div>
+          <div class="mock-row"><span>آپلود</span><b><span data-count="587.1" data-decimals="1">587.1</span> Mbps</b></div>
+          <div class="mock-row"><span>تأخیر میانه</span><b><span data-count="61.2" data-decimals="1">61.2</span> ms</b></div>
+          <div class="mock-row"><span>اتلاف</span><b><span data-count="0.4" data-decimals="1">0.4</span> %</b></div>
         </div>
       </section>
 
-      <section>
-        <h2>در سه قدم شروع کنید</h2>
-        <div class="codeblock">npm install
-npm run demo        # پنل + دو ایجنت + پنج تانل نمونه
-# سپس باز کنید: http://localhost:8080/panel</div>
-        <p class="sub" style="margin-top:14px">برای سرور واقعی: <code>node bin/nahr.js agent --port 7700 --id s1</code> را روی هر سرور اجرا کرده و از پنل اضافهاش کنید.</p>
+      <section id="manager" class="manager-section reveal">
+        <div class="manager-copy">
+          <div class="kicker"><span class="live-dot"></span> MANAGEMENT</div>
+          <h2>همهچیز از یک منوی ترمینالی</h2>
+          <p class="sub">دستور <code>nahr-manager</code> را بزنید: نصب و بهروزرسانی، وضعیت و آدرسها، پنل، توکن، پورت، لاگ زنده و حذف کامل — بدون یادآوری دستورات طولانی.</p>
+          <div class="hero-command" data-copy="sudo nahr-manager"><code>sudo nahr-manager</code><button type="button" aria-label="کپی دستور">⧉</button></div>
+          <div class="manager-points"><span>◆ فارسی و RTL</span><span>◆ بدون وابستگی</span><span>◆ نصب خودکار با اسکریپت تکخطی</span></div>
+        </div>
+        <div class="terminal" data-tilt aria-label="نمایش منوی ترمینالی نهر">
+          <div class="terminal-bar"><i></i><i></i><i></i><span>nahr-manager</span></div>
+          <div class="terminal-body" dir="ltr">
+<div class="term-line"><span class="term-muted">╭──────────────────────────────────────────────╮</span></div>
+<div class="term-line"><span class="term-muted">│</span>  ◆ نهر · manager   تونل و پنل        v<span class="term-accent">0.2.0</span>  <span class="term-muted">│</span></div>
+<div class="term-line"><span class="term-muted">╰──────────────────────────────────────────────╯</span></div>
+<div class="term-line">&nbsp;</div>
+<div class="term-line">  <span class="term-green">●</span> core      نهر 0.2.0 · 2 تانل روی این سرور</div>
+<div class="term-line">  <span class="term-green">●</span> پنل وب   http://127.0.0.1:18080/panel</div>
+<div class="term-line">  <span class="term-green">●</span> ایجنت    گوش 7700</div>
+<div class="term-line">&nbsp;</div>
+<div class="term-line term-section">نهر ────────────────────────────────────────────</div>
+<div class="term-line"><span class="term-cursor">❯</span>  <span class="term-accent"> 1</span>  نصب یا بهروزرسانی نهر</div>
+<div class="term-line">      2  وضعیت و آدرسها</div>
+<div class="term-line term-section">پنل وب ─────────────────────────────────────────</div>
+<div class="term-line">      3  نصب پنل وب روی این سرور</div>
+<div class="term-line">      4  لینک ورود به پنل</div>
+<div class="term-line">      7  پورت پنل</div>
+<div class="term-line term-section">سیستم ──────────────────────────────────────────</div>
+<div class="term-line">     11  لاگ زنده</div>
+<div class="term-line">     12  حذف کامل نهر</div>
+<div class="term-line">&nbsp;</div>
+<div class="term-line"><span class="term-muted">↑/↓ حرکت · Enter اجرا · شماره پرش · q خروج</span></div>
+<div class="term-line"><span class="term-accent">›</span> <span class="term-tip">آخرین نسخه را از گیت هاب میگیرم…</span><span class="blink">▌</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="install" class="install-band reveal">
+        <div>
+          <h2>سه قدم تا شروع</h2>
+          <p class="sub">روی سرور داخل بزنید، سپس همان خط را روی سرور خارج. پنل دوم را با <code>sudo systemctl disable --now nahr-panel</code> خاموش کنید.</p>
+        </div>
+        <div class="hero-command big" data-copy="curl -fsSL https://raw.githubusercontent.com/batvin/nahr/main/scripts/quick-install.sh | sudo bash">
+          <code>curl -fsSL https://raw.githubusercontent.com/batvin/nahr/main/scripts/quick-install.sh | sudo bash</code>
+          <button type="button" aria-label="کپی دستور">⧉</button>
+        </div>
       </section>
     </main>
-    <footer><div class="wrap"><span>نهر · پیادهسازی مستقل و متنباز</span><span>·</span><a href="/docs">مستندات</a><a href="/panel">پنل</a><span class="grow" style="flex:1"></span><span>نسخه ۰٫۱٫۰</span></div></footer>
+
+    <footer><div class="wrap"><span>نهر · پیادهسازی مستقل و متنباز</span><span>·</span><a href="/docs">مستندات</a><a href="/panel">پنل</a><span class="grow" style="flex:1"></span><span>نسخه ۰٫۲٫۰</span></div></footer>
   </body>
 </html>

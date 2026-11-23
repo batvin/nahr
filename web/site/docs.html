@@ -6,6 +6,8 @@
     <title>مستندات نهر</title>
     <link rel="icon" href="/favicon.svg" />
     <link rel="stylesheet" href="/site.css" />
+    <link rel="stylesheet" href="/site/motion.css" />
+    <script src="/site/site.js" defer></script>
   </head>
   <body>
     <header><div class="wrap"><a class="logo" href="/"><img src="/favicon.svg" alt="" /> نهر</a>
@@ -64,11 +66,24 @@ npm run demo     # یا: npm start</div>
       <div class="codeblock">node bin/nahr.js agent --port 7700 --id s1 --host 0.0.0.0</div>
       <p>سپس در پنل، تب «سرورها» → «افزودن سرور»، آدرس و پورت ایجنت را وارد کنید. توکن پیشفرض همان کلید مشترک پنل است (قابل مشاهده در تنظیمات). پورت ۷۷۰۰ ایجنت را در فایروال باز کنید.</p>
 
+      <h2>منوی ترمینالی nahr-manager</h2>
+      <p>اسکریپت نصب تکخطی، فرمان <code>nahr-manager</code> را هم نصب میکند. با اجرای آن یک منوی فارسی و RTL میبینید:</p>
+      <div class="codeblock">curl -fsSL https://raw.githubusercontent.com/batvin/nahr/main/scripts/quick-install.sh | sudo bash
+sudo nahr-manager</div>
+      <ul>
+        <li><b>نصب یا بهروزرسانی نهر:</b> دریافت آخرین نسخه از گیت هاب و راهاندازی دوبارهٔ سرویسها.</li>
+        <li><b>وضعیت و آدرسها:</b> نام میزبان، IPv4/IPv6، پورتها، تانلهای زنده و توکن (پوشاندهشده).</li>
+        <li><b>پنل وب:</b> نصب/حذف پنل، لینک ورود، نمایش توکن و تغییر پورت پنل.</li>
+        <li><b>ایجنت:</b> اتصال این سرور به یک پنل دیگر یا متوقف کردن ایجنت.</li>
+        <li><b>سیستم:</b> لاگ زندهٔ <code>journalctl</code> و حذف کامل نهر.</li>
+      </ul>
+      <div class="note">برای خروج از منو <code>q</code> یا <code>Ctrl+C</code> را بزنید. حذف کامل تنها بعد از تایپ عبارت «بله» انجام میشود.</div>
+
       <h2>سوالات رایج</h2>
       <h3>آیا باید Rust نصب کنم؟</h3>
       <p>خیر. نهر کاملاً با Node.js نوشته شده و به کامپایلر یا ابزار ساخت نیازی ندارد.</p>
       <h3>آیا کد پروژهٔ دیگری در آن هست؟</h3>
-      <p>خیر. نهر پیادهسازی مستقلی است و از Licence کاربر دیگری استفاده نمیکند.</p>
+      <p>خیر. نهر پیادهسازی مستقلی است و از مجوز پروژهٔ دیگری استفاده نمیکند.</p>
     </main>
   </body>
 </html>

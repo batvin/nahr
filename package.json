@@ -1,16 +1,18 @@
 {
   "name": "nahr",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "نهر — encrypted multi-transport tunnel, web panel and built-in benchmark",
   "type": "module",
   "bin": {
-    "nahr": "bin/nahr.js"
+    "nahr": "bin/nahr.js",
+    "nahr-manager": "bin/nahr-manager.js"
   },
   "scripts": {
     "start": "node bin/nahr.js panel",
     "panel": "node bin/nahr.js panel",
     "agent": "node bin/nahr.js agent",
     "bench": "node bin/nahr.js bench",
+    "manager": "node bin/nahr-manager.js",
     "demo": "node bin/nahr.js demo",
     "test": "node --test test/*.test.js"
   },
