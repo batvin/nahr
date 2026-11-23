@@ -59,6 +59,29 @@ export function decodeConnectCode(code, { now = Date.now() } = {}) {
   };
 }
 
+/** پنل کد را تنها در صورتی میپذیرد که توکن داخل آن با توکن این پنل برابر باشد. */
+export function validatePanelCode(code, secret) {
+  const info = decodeConnectCode(code);
+  if (!secret || info.token !== secret) throw new Error('کد اتصال متعلق به این پنل نیست');
+  return info;
+}
+
+/** ساخت رکورد سرور بهازای کد و آدرسی که از پنل/ایجنت میرسد. */
+export function serverFromConnect(info, input = {}) {
+  const host = String(input.host || '').trim();
+  if (!host) throw new Error('آدرس سرور لازم است');
+  const name = String(input.name || info.name || host).slice(0, 48);
+  return {
+    id: safeName(name),
+    name,
+    host,
+    agentPort: Number(input.agentPort || 7700) || 7700,
+    token: info.token,
+    dialHost: host,
+    region: '',
+  };
+}
+
 export function localIPv4() {
   const nets = Object.values(os.networkInterfaces()).flat().filter(Boolean);
   const local = nets.find((n) => n.family === 'IPv4' && !n.internal)?.address || '';
@@ -115,7 +138,7 @@ export async function applyConnect({ code = '', envFile = '', agentPort = 7700, 
     const res = await fetch(`${info.agent}/connect/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-nahr-token': info.token },
-      body: JSON.stringify({ code, replace, server }),
+      body: JSON.stringify({ code, replace, server, host: ip, agentPort, name }),
       signal: AbortSignal.timeout(9000),
     });
     reply = await res.json().catch(() => ({}));
@@ -133,13 +156,14 @@ export async function applyConnect({ code = '', envFile = '', agentPort = 7700, 
     }
     const dup = existing.find((s) => s.id === id || s.host === ip);
     if (dup && !replace) return { ok: false, needsConfirm: true, duplicate: dup, info, server };
-    const res = await fetch(`${info.panelLocal}/api/servers`, {
+    const res = await fetch(`${info.panelLocal}/api/connect/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(server),
+      body: JSON.stringify({ code, replace, server }),
       signal: AbortSignal.timeout(8000),
     });
     reply = await res.json().catch(() => ({}));
+    if (res.status === 409 || reply.needsConfirm) return { ok: false, needsConfirm: true, duplicate: reply.duplicate, info, server };
     if (!res.ok) return { ok: false, err: reply.error || `خطای ${res.status} از پنل`, info, server };
   }
 

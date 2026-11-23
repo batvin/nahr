@@ -184,26 +184,46 @@ function fmtBytes(n) {
   return `${n.toFixed(1)} ${u[i]}`;
 }
 
+function serversTableHtml() {
+  return S.servers.length ? `<table><thead><tr><th>نام</th><th>آدرس ایجنت</th><th>وضعیت</th><th>منطقه</th><th>آپتایم</th><th></th></tr></thead><tbody>
+    ${S.servers.map((s) => `<tr>
+      <td><b>${esc(s.name)}</b>${s.demo ? ' <span class="badge">دمو</span>' : ''}<div class="small faint mono">${esc(s.id)}</div></td>
+      <td class="mono small">${esc(s.host)}:${s.agentPort}</td>
+      <td><span class="badge ${s.online ? 'good' : 'bad'}">${s.online ? 'آنلاین' : 'آفلاین'}</span></td>
+      <td>${esc(s.region || '—')}</td>
+      <td class="mono small">${s.uptimeSec ? `${num(s.uptimeSec)} ثانیه` : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" data-action="delete-server" data-id="${s.id}">${icon('trash', 14)}</button></td>
+    </tr>`).join('')}
+  </tbody></table>` : `<div class="empty"><div class="big">🖥</div><p>هنوز سروری وجود ندارد</p><p class="small">با کد اتصال در پایین، سرور جدید اضافه کنید یا دمو محلی را روشن کنید.</p></div>`;
+}
+
 function viewServers() {
   return `
-    <div class="section-title"><div><h2>سرورها</h2><p>هر سرور یک ایجنت نهر اجرا میکند</p></div><span class="grow"></span>
+    <div class="section-title"><div><h2>سرورها</h2><p>هر سرور یک ایجنت نهر اجرا میکند — فهرست بهطور خودکار تازه میشود</p></div><span class="grow"></span>
       <button class="btn btn-sm" data-action="demo-toggle">${S.state.demo?.running ? 'توقف دمو' : 'دمو محلی'}</button>
       <button class="btn btn-primary btn-sm" data-action="add-server">${icon('plus', 15)} افزودن سرور</button></div>
-    <div class="card">${S.servers.length ? `<table><thead><tr><th>نام</th><th>آدرس ایجنت</th><th>وضعیت</th><th>منطقه</th><th>آپتایم</th><th></th></tr></thead><tbody>
-      ${S.servers.map((s) => `<tr>
-        <td><b>${esc(s.name)}</b>${s.demo ? ' <span class="badge">دمو</span>' : ''}<div class="small faint mono">${esc(s.id)}</div></td>
-        <td class="mono small">${esc(s.host)}:${s.agentPort}</td>
-        <td><span class="badge ${s.online ? 'good' : 'bad'}">${s.online ? 'آنلاین' : 'آفلاین'}</span></td>
-        <td>${esc(s.region || '—')}</td>
-        <td class="mono small">${s.uptimeSec ? `${num(s.uptimeSec)} ثانیه` : '—'}</td>
-        <td><button class="btn btn-ghost btn-sm" data-action="delete-server" data-id="${s.id}">${icon('trash', 14)}</button></td>
-      </tr>`).join('')}
-    </tbody></table>` : `<div class="empty"><div class="big">🖥</div><p>هنوز سروری وجود ندارد</p><p class="small">برای آزمایش سریع، دمو محلی را روشن کنید.</p></div>`}</div>
-    <div class="card" style="margin-top:16px"><div class="card-head"><h3>نصب ایجنت روی سرور واقعی</h3></div>
-      <p class="small muted">روی سرور مورد نظر Node.js 20 یا بالاتر داشته باشید، سپس:</p>
-      <div class="code">git clone &lt;این-مخزن&gt; nahr &amp;&amp; cd nahr &amp;&amp; npm install
-node bin/nahr.js agent --port 7700 --id SERVER-1</div>
-      <p class="small faint">توکن پیشفرض ایجنت همان کلید پنل است؛ میتوانید با <span class="mono">--token</span> جداگانه تعیین کنید.</p>
+    <div class="card" id="servers-table">${serversTableHtml()}</div>
+    <div class="grid cols-2" style="margin-top:16px">
+      <div class="card"><div class="card-head"><h3>اتصال با کد (nh1_)</h3></div>
+        <p class="small muted">کدی را که از سرور پنل گرفتید اینجا بچسبانید تا سرور بدون رفتن به ترمینال به پنل اضافه شود.</p>
+        <label class="field"><span>کد اتصال</span><input id="join-code" dir="ltr" placeholder="nh1_..."></label>
+        <label class="field"><span>آدرس IP یا دامنهٔ سرور</span><input id="join-host" dir="ltr" placeholder="2.2.2.2"></label>
+        <label class="field"><span>پورت ایجنت</span><input id="join-port" type="number" dir="ltr" value="7700"></label>
+        <button class="btn btn-primary btn-sm" data-action="join-by-code">افزودن سرور با کد</button>
+        <div id="join-result" class="small muted" style="margin-top:8px"></div>
+      </div>
+      <div class="card"><div class="card-head"><h3>ساخت کد اتصال تکخطی</h3></div>
+        <p class="small muted">آدرس عمومی ایجنت سرور پنل را بدهید تا کد و دستور نصب تکخطی ساخته شود.</p>
+        <label class="field"><span>آدرس عمومی ایجنت (مثال http://IP:7700)</span><input id="connect-agent" dir="ltr" placeholder="http://87.107.81.145:7700"></label>
+        <label class="field"><span>نام سرور جدید</span><input id="connect-name" dir="ltr" placeholder="outside"></label>
+        <label class="field"><span>اعتبار کد (ساعت)</span><input id="connect-ttl" type="number" dir="ltr" value="24"></label>
+        <button class="btn btn-primary btn-sm" data-action="make-connect-code">ساخت کد اتصال</button>
+        <div id="connect-result" class="code" style="margin-top:10px;display:none;word-break:break-all"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="card-head"><h3>نصب دستی ایجنت (اختیاری)</h3></div>
+      <p class="small muted">اگر نمیتوانید از کد اتصال استفاده کنید، روی سرور مورد نظر Node.js 20 یا بالاتر نصب و ایجنت را اجرا کنید، سپس آدرس آن را با «افزودن سرور» وارد کنید:</p>
+      <div class="code">node bin/nahr.js agent --port 7700 --id SERVER-1 --token &lt;کلید-پنل&gt;</div>
     </div>`;
 }
 
@@ -513,10 +533,30 @@ document.addEventListener('click', async (e) => {
       toast(`اعمال شد: ${LABELS[r.tunnel.transport]}`);
       return loadAll();
     }
+    if (a === 'join-by-code') {
+      const code = $('#join-code').value.trim();
+      const host = $('#join-host').value.trim();
+      const agentPort = Number($('#join-port').value || 7700);
+      if (!code) throw new Error('کد اتصال را وارد کنید');
+      if (!host) throw new Error('آدرس سرور را وارد کنید');
+      const submit = (replace) => post('/connect/register', { code, host, agentPort, replace });
+      let r;
+      try {
+        r = await submit(false);
+      } catch (err) {
+        if (/متصل است|از قبل/.test(err.message) && window.confirm('این سرور از قبل در پنل هست، جایگزین شود؟')) {
+          r = await submit(true);
+        } else throw err;
+      }
+      $('#join-result').textContent = `✓ ${r.server.name} — ${r.server.host}:${r.server.agentPort} اضافه شد.`;
+      toast('سرور با کد اتصال اضافه شد');
+      return loadAll();
+    }
     if (a === 'make-connect-code') {
       const agent = $('#connect-agent').value.trim();
       const name = $('#connect-name').value.trim();
-      const params = new URLSearchParams({ ttl: '24' });
+      const ttl = $('#connect-ttl')?.value || '24';
+      const params = new URLSearchParams({ ttl });
       if (agent) params.set('agent', agent);
       if (name) params.set('name', name);
       const r = await api(`/connect-code?${params}`);
@@ -578,12 +618,39 @@ function connectStream() {
         S.bench = event.bench;
         if (S.route === 'bench') render();
       }
+      if (event.type === 'servers') refreshServers();
     };
     S.stream.onerror = () => {};
   } catch {
     /* SSE unavailable */
   }
 }
+
+/* سرورهایی که از بیرون (با کد اتصال) اضافه میشوند بدون رفرش صفحه نمایان شوند */
+let refreshing = false;
+async function refreshServers() {
+  if (refreshing || document.hidden) return;
+  refreshing = true;
+  try {
+    const { servers } = await api('/servers');
+    S.servers = servers || [];
+    const count = $('#count-servers');
+    if (count) count.textContent = S.servers.length;
+    const online = S.servers.filter((s) => s.online).length;
+    const dot = $('#health-dot');
+    const text = $('#health-text');
+    if (dot) dot.className = `dot ${online ? 'on' : 'off'}`;
+    if (text) text.textContent = `${online}/${S.servers.length} سرور آنلاین`;
+    const table = $('#servers-table');
+    if (table && S.route === 'servers') table.innerHTML = serversTableHtml();
+  } catch {
+    /* پنل مشغول است؛ تلاش بعدی */
+  } finally {
+    refreshing = false;
+  }
+}
+setInterval(refreshServers, 4000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshServers(); });
 
 $$('.nav-ico').forEach((el) => {
   const name = el.dataset.icon;

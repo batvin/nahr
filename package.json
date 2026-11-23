@@ -1,6 +1,6 @@
 {
   "name": "nahr",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "نهر — encrypted multi-transport tunnel, web panel and built-in benchmark",
   "type": "module",
   "bin": {

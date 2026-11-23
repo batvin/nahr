@@ -82,7 +82,9 @@ export class Agent {
           });
           return;
         }
-        if (this.token && req.headers['x-nahr-token'] !== this.token) {
+        // /connect/register carries its own signed-by-secret code; the agent only relays it.
+        const isRegister = url.pathname === '/connect/register';
+        if (this.token && !isRegister && req.headers['x-nahr-token'] !== this.token) {
           send(res, 401, { error: 'unauthorized' });
           return;
         }
@@ -128,31 +130,52 @@ export class Agent {
       return;
     }
     // New server joins the panel through this agent, so the panel can stay on 127.0.0.1.
+    // The code is validated by the panel itself — the agent token may be stale.
     if (pathname === '/connect/register') {
       const info = decodeConnectCode(body.code);
       const panel = info.panelLocal || process.env.NAHR_PANEL_LOCAL || DEFAULT_PANEL_LOCAL;
-      let existing = [];
+      const payload = { code: body.code, server: body.server || null, host: body.host || '', agentPort: body.agentPort || 0, name: body.name || '', replace: !!body.replace };
+      let res2;
       try {
-        const res = await fetch(`${panel}/api/servers`, { signal: AbortSignal.timeout(5000) });
-        if (res.ok) existing = (await res.json()).servers || [];
-      } catch {
-        /* panel not reachable yet */
-      }
-      const server = body.server || {};
-      const dup = existing.find((s) => s.id === server.id || s.host === server.host);
-      if (dup && !body.replace) {
-        send(res, 409, { needsConfirm: true, duplicate: dup, error: 'سرور از قبل به این پنل متصل است' });
+        res2 = await fetch(`${panel}/api/connect/register`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(9000),
+        });
+      } catch (err) {
+        send(res, 400, { error: `پنل در دسترس نیست: ${err.message}` });
         return;
       }
-      const res2 = await fetch(`${panel}/api/servers`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...server, token: server.token || info.token || this.token }),
-        signal: AbortSignal.timeout(8000),
-      });
+      // Older panels: fall back to the plain servers API.
+      if (res2.status === 404) {
+        let existing = [];
+        try {
+          const r = await fetch(`${panel}/api/servers`, { signal: AbortSignal.timeout(5000) });
+          if (r.ok) existing = (await r.json()).servers || [];
+        } catch {
+          /* panel not reachable */
+        }
+        const server = body.server || {};
+        const dup = existing.find((s) => s.id === server.id || s.host === server.host);
+        if (dup && !body.replace) {
+          send(res, 409, { needsConfirm: true, duplicate: dup, error: 'سرور از قبل به این پنل متصل است' });
+          return;
+        }
+        res2 = await fetch(`${panel}/api/servers`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ ...server, token: server.token || info.token }),
+          signal: AbortSignal.timeout(8000),
+        });
+      }
       const data = await res2.json().catch(() => ({}));
+      if (res2.status === 409 || data.needsConfirm) {
+        send(res, 409, { needsConfirm: true, duplicate: data.duplicate, error: data.error || 'سرور از قبل به این پنل متصل است' });
+        return;
+      }
       if (!res2.ok) {
-        send(res, 400, { error: data.error || 'خطا در ثبت سرور روی پنل' });
+        send(res, 400, { error: data.error || `خطای ${res2.status} از پنل` });
         return;
       }
       send(res, 200, { ok: true, server: data.server });

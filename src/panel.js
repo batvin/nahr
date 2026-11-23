@@ -4,7 +4,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { ROOT, uid, ensureDir } from './util.js';
 import { INSTALLER_URL } from './manager.js';
-import { encodeConnectCode, connectCommand } from './connect.js';
+import { encodeConnectCode, connectCommand, validatePanelCode, serverFromConnect } from './connect.js';
 import { getState, save, update } from './store.js';
 import { getLogs, subscribe, logger } from './log.js';
 import { callAgent, runBench, stopBench, currentBench, lastBench, applyBench, subscribe as benchSubscribe } from './bench.js';
@@ -174,6 +174,35 @@ export class Panel {
       });
       return send(res, 200, { code, command: connectCommand(code, INSTALLER_URL) });
     }
+    // Joining servers (or the website) register here. The panel validates the code itself,
+    // so an out-of-sync agent token can no longer block a connection.
+    if (p === '/api/connect/register' && method === 'POST') {
+      const b = await body(req);
+      let info;
+      try {
+        info = validatePanelCode(b.code, state.secret);
+      } catch (err) {
+        return send(res, 400, { error: err.message });
+      }
+      const server = b.server && b.server.host
+        ? { ...b.server, token: info.token }
+        : serverFromConnect(info, b);
+      const dup = state.servers.find((s) => s.id === server.id || s.host === server.host);
+      if (dup && !b.replace) {
+        return send(res, 409, { needsConfirm: true, duplicate: dup, error: 'سرور از قبل به این پنل متصل است' });
+      }
+      if (dup) {
+        update((s) => {
+          const i = s.servers.findIndex((x) => x.id === dup.id);
+          s.servers[i] = { ...s.servers[i], ...server, id: dup.id };
+        });
+        this.pushEvent({ type: 'servers' });
+        return send(res, 200, { ok: true, server: { ...dup, ...server, id: dup.id } });
+      }
+      update((s) => s.servers.push(server));
+      this.pushEvent({ type: 'servers' });
+      return send(res, 200, { ok: true, server });
+    }
     if (p === '/api/settings' && method === 'POST') {
       const b = await body(req);
       update((s) => {
@@ -210,6 +239,7 @@ export class Panel {
       };
       if (!server.host) throw new Error('host required');
       update((s) => s.servers.push(server));
+      this.pushEvent({ type: 'servers' });
       return send(res, 200, { ok: true, server });
     }
     if (p.startsWith('/api/servers/') && method === 'DELETE') {
@@ -218,6 +248,7 @@ export class Panel {
         s.servers = s.servers.filter((x) => x.id !== id);
         s.tunnels = s.tunnels.filter((t) => t.entryId !== id && t.exitId !== id);
       });
+      this.pushEvent({ type: 'servers' });
       return send(res, 200, { ok: true });
     }
 
