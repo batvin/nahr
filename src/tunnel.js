@@ -89,6 +89,7 @@ export class TunnelRuntime {
       const listenHost = rule.listenHost || '127.0.0.1';
       const targetHost = rule.targetHost || '127.0.0.1';
       const server = net.createServer((socket) => {
+        socket.setNoDelay(true);
         let stream;
         try {
           stream = this._openStream({ host: targetHost, port: targetPort });

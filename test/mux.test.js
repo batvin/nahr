@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './helpers.js';
 import { duplexPair } from './helpers.js';
-import { Mux } from '../src/mux.js';
+import { Mux, F } from '../src/mux.js';
 
 function pair() {
   const [aRaw, bRaw] = duplexPair();
@@ -54,6 +54,21 @@ test('mux datagrams are delivered on the other side', async () => {
   const got = new Promise((resolve) => b.once('datagram', resolve));
   await a.sendDatagram(Buffer.from('dgram-payload'));
   assert.equal((await got).toString(), 'dgram-payload');
+  a.close();
+  b.close();
+});
+
+test('mux keepalive PING frames refresh the channel without opening streams', () => {
+  const { a, b } = pair();
+  let streams = 0;
+  let datagrams = 0;
+  b.on('stream', () => streams++);
+  b.on('datagram', () => datagrams++);
+  const before = b.lastRx;
+  b._handleFrame(0, F.PING, Buffer.alloc(0));
+  assert.equal(streams, 0);
+  assert.equal(datagrams, 0);
+  assert.ok(b.lastRx >= before);
   a.close();
   b.close();
 });

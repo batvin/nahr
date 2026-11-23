@@ -135,13 +135,15 @@ export function createSocks5Server({ onConnect, onDatagram, host = '127.0.0.1', 
               upstream = await onConnect({ host: dest.host, port: dest.port }, socket, dest.rest);
             } catch (err) {
               log.warn(`connect to ${dest.host}:${dest.port} failed: ${err.message}`);
-              reply(1, [1, 0, 0, 0, 0, 0]);
+              reply(1, [1, 0, 0, 0, 0, 0, 0]);
               socket.destroy();
               return;
             }
-            reply(0, [1, 0, 0, 0, 0, 0]);
+            reply(0, [1, 0, 0, 0, 0, 0, 0]);
             socket.resume();
-            if (dest.rest.length) upstream.write(dest.rest);
+            // `dest.rest` was already handed to onConnect as `initial` and is
+            // carried inside the SYN frame. Writing it again duplicates early
+            // client bytes (TLS ClientHello) and breaks HTTPS/V2Ray handshakes.
             socket.pipe(upstream);
             upstream.pipe(socket);
             socket.on('error', () => upstream.destroy());
@@ -173,7 +175,7 @@ export function createSocks5Server({ onConnect, onDatagram, host = '127.0.0.1', 
             reply(0, [1, ...addr.address.split('.').map(Number), ...[(addr.port >> 8) & 255, addr.port & 255]]);
             return;
           }
-          reply(7, [1, 0, 0, 0, 0, 0]);
+          reply(7, [1, 0, 0, 0, 0, 0, 0]);
           socket.destroy();
         }
       } catch (err) {

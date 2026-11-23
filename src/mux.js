@@ -1,7 +1,7 @@
 import { Duplex } from 'node:stream';
 import { EventEmitter } from 'node:events';
 
-export const F = { SYN: 1, DATA: 2, FIN: 4, RST: 8, DATAGRAM: 16 };
+export const F = { SYN: 1, DATA: 2, FIN: 4, RST: 8, DATAGRAM: 16, PING: 32 };
 const HEADER = 13;
 
 class MuxStream extends Duplex {
@@ -49,6 +49,22 @@ export class Mux extends EventEmitter {
     this.tx = Promise.resolve();
     this.blocked = new Set();
     this.closed = false;
+    // NAT/firewall rules drop idle TCP/WS connections after a few minutes.
+    // Keep the channel warm and declare it dead if nothing comes back, so the
+    // dialer redials instead of leaving apps (Instagram, etc.) hanging.
+    this.lastRx = Date.now();
+    this.keepalive = null;
+    if (label !== 'udp') {
+      this.keepalive = setInterval(() => {
+        if (this.closed) return;
+        if (Date.now() - this.lastRx > 60000) {
+          this._fail(new Error('keepalive timeout'));
+          return;
+        }
+        void this.send(0, F.PING, Buffer.alloc(0));
+      }, 20000);
+      this.keepalive.unref?.();
+    }
     this._onData = this._onData.bind(this);
     transport.on('data', this._onData);
     transport.on('error', (err) => this._fail(err));
@@ -58,6 +74,7 @@ export class Mux extends EventEmitter {
   _fail(err) {
     if (this.closed) return;
     this.closed = true;
+    clearInterval(this.keepalive);
     if (this.listenerCount('error')) this.emit('error', err);
     for (const stream of this.streams.values()) {
       // Streams with no error listener would emit an unhandled 'error' during
@@ -71,6 +88,7 @@ export class Mux extends EventEmitter {
   close() {
     if (this.closed) return;
     this.closed = true;
+    clearInterval(this.keepalive);
     this.transport.off('data', this._onData);
     if (!this.transport.destroyed) this.transport.destroy();
   }
@@ -114,6 +132,7 @@ export class Mux extends EventEmitter {
 
   _onData(chunk) {
     if (this.closed) return;
+    this.lastRx = Date.now();
     this.rx = this.rx.length ? Buffer.concat([this.rx, chunk]) : chunk;
     while (this.rx.length >= HEADER) {
       const id = this.rx.readUInt32BE(0);
@@ -129,6 +148,8 @@ export class Mux extends EventEmitter {
   }
 
   _handleFrame(id, flags, payload) {
+    // Keepalive frames carry no data; receiving one only refreshes lastRx.
+    if (flags & F.PING) return;
     if (flags & F.DATAGRAM) {
       this.emit('datagram', Buffer.from(payload));
       return;
