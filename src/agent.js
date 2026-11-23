@@ -10,6 +10,7 @@ import { Mux } from './mux.js';
 import { logger } from './log.js';
 import { DATA_DIR, ensureDir, uid } from './util.js';
 import { VERSION } from './manager.js';
+import { decodeConnectCode, DEFAULT_PANEL_LOCAL } from './connect.js';
 
 const log = logger('agent');
 
@@ -124,6 +125,37 @@ export class Agent {
     if (pathname === '/tunnel/status') {
       const runtime = this.tunnels.get(body.id);
       send(res, 200, { status: runtime ? runtime.status() : null });
+      return;
+    }
+    // New server joins the panel through this agent, so the panel can stay on 127.0.0.1.
+    if (pathname === '/connect/register') {
+      const info = decodeConnectCode(body.code);
+      const panel = info.panelLocal || process.env.NAHR_PANEL_LOCAL || DEFAULT_PANEL_LOCAL;
+      let existing = [];
+      try {
+        const res = await fetch(`${panel}/api/servers`, { signal: AbortSignal.timeout(5000) });
+        if (res.ok) existing = (await res.json()).servers || [];
+      } catch {
+        /* panel not reachable yet */
+      }
+      const server = body.server || {};
+      const dup = existing.find((s) => s.id === server.id || s.host === server.host);
+      if (dup && !body.replace) {
+        send(res, 409, { needsConfirm: true, duplicate: dup, error: 'سرور از قبل به این پنل متصل است' });
+        return;
+      }
+      const res2 = await fetch(`${panel}/api/servers`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ...server, token: server.token || info.token || this.token }),
+        signal: AbortSignal.timeout(8000),
+      });
+      const data = await res2.json().catch(() => ({}));
+      if (!res2.ok) {
+        send(res, 400, { error: data.error || 'خطا در ثبت سرور روی پنل' });
+        return;
+      }
+      send(res, 200, { ok: true, server: data.server });
       return;
     }
     if (pathname === '/bench/listen') {

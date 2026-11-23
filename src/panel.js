@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { ROOT, uid, ensureDir } from './util.js';
+import { INSTALLER_URL } from './manager.js';
+import { encodeConnectCode, connectCommand } from './connect.js';
 import { getState, save, update } from './store.js';
 import { getLogs, subscribe, logger } from './log.js';
 import { callAgent, runBench, stopBench, currentBench, lastBench, applyBench, subscribe as benchSubscribe } from './bench.js';
@@ -160,6 +162,18 @@ export class Panel {
     const state = getState();
 
     if (p === '/api/state' && method === 'GET') return send(res, 200, { state, bench: currentBench() || lastBench() });
+    if (p === '/api/connect-code' && method === 'GET') {
+      const panelPort = this.port || Number(url.searchParams.get('port') || 18080);
+      const agent = url.searchParams.get('agent') || `http://${req.headers.host || `127.0.0.1:${panelPort}`}`;
+      const code = encodeConnectCode({
+        agent,
+        panelLocal: `http://127.0.0.1:${panelPort}`,
+        token: state.secret,
+        name: url.searchParams.get('name') || '',
+        ttlHours: Number(url.searchParams.get('ttl') || 24),
+      });
+      return send(res, 200, { code, command: connectCommand(code, INSTALLER_URL) });
+    }
     if (p === '/api/settings' && method === 'POST') {
       const b = await body(req);
       update((s) => {

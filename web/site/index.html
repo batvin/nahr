@@ -19,7 +19,7 @@
       <a class="logo" href="/"><img src="/favicon.svg" alt="" /> نهر</a>
       <nav>
         <a href="#features">ویژگیها</a><a href="#flow">معماری</a><a href="#transports">ترنسپورتها</a>
-        <a href="#bench">محک</a><a href="#manager">ترمینال</a><a href="/docs">مستندات</a>
+        <a href="#bench">محک</a><a href="#manager">ترمینال</a><a href="#onecode">اتصال تکخطی</a><a href="/docs">مستندات</a>
         <a class="btn primary" href="/panel">ورود به پنل</a>
       </nav>
     </div></header>
@@ -174,9 +174,13 @@
 <div class="term-line">      3  نصب پنل وب روی این سرور</div>
 <div class="term-line">      4  لینک ورود به پنل</div>
 <div class="term-line">      7  پورت پنل</div>
+<div class="term-line term-section">ایجنت ──────────────────────────────────────────</div>
+<div class="term-line">      9  اتصال ایجنت به پنل</div>
+<div class="term-line"><span class="term-accent">     10  ساخت کد اتصال تکخطی</span></div>
+<div class="term-line">     11  حذف ایجنت</div>
 <div class="term-line term-section">سیستم ──────────────────────────────────────────</div>
-<div class="term-line">     11  لاگ زنده</div>
-<div class="term-line">     12  حذف کامل نهر</div>
+<div class="term-line">     12  لاگ زنده</div>
+<div class="term-line">     13  حذف کامل نهر</div>
 <div class="term-line">&nbsp;</div>
 <div class="term-line"><span class="term-muted">↑/↓ حرکت · Enter اجرا · شماره پرش · q خروج</span></div>
 <div class="term-line"><span class="term-accent">›</span> <span class="term-tip">آخرین نسخه را از گیت هاب میگیرم…</span><span class="blink">▌</span></div>
@@ -184,10 +188,39 @@
         </div>
       </section>
 
+      <section id="onecode" class="split reveal">
+        <div>
+          <div class="kicker"><span class="live-dot"></span> ONE CODE · TWO SERVERS</div>
+          <h2>دو سرور، یک کد، یک دستور</h2>
+          <p class="sub">روی سرور پنل کد اتصال بسازید و روی سرور خارج تنها همان یک خط را بزنید. نصب نهر، دریافت توکن و ثبت سرور خودکار میشود و پنل روی <code>127.0.0.1</code> میماند — نیازی به باز کردن پورت پنل نیست.</p>
+          <ol>
+            <li>روی سرور پنل: <code>sudo nahr-manager</code> → گزینهٔ ۱۰ «ساخت کد اتصال تکخطی» (یا <code>nahr connect-code --agent http://IP:7700 --name outside</code>).</li>
+            <li>کد <code>nh1_…</code> را کپی و به سرور خارج بدهید.</li>
+            <li>روی سرور خارج با root همان دستور تکخطی را اجرا کنید.</li>
+          </ol>
+          <p class="small" style="color:var(--muted)">اگر سرور خارج از قبل به پنلی وصل باشد، اسکریپت پیش از جایگزین کردن میپرسد؛ برای حالت خودکار <code>--replace</code> را اضافه کنید. اعتبار پیشفرض کد ۲۴ ساعت است.</p>
+        </div>
+        <div class="terminal" data-tilt>
+          <div class="terminal-bar"><i></i><i></i><i></i><span>server-1 → server-2</span></div>
+          <div class="terminal-body" dir="ltr">
+<div class="term-line"><span class="term-muted"># server-1 (panel): generate a one-time connect code</span></div>
+<div class="term-line"><span class="term-accent">$</span> nahr connect-code --agent http://87.107.81.145:7700 --name outside</div>
+<div class="term-line"><span class="term-green">nh1_eyJ2IjoxLCJhIjoiaHR0cDovLzg3LjEwNy44MS4xNDU6NzcwMCIs…</span></div>
+<div class="term-line">&nbsp;</div>
+<div class="term-line"><span class="term-muted"># server-2 (root): install + join with that single code</span></div>
+<div class="term-line"><span class="term-accent">$</span> bash &lt;(curl -fsSL …/quick-install.sh) --agent nh1_eyJ2Ijo…</div>
+<div class="term-line"><span class="term-green">✓</span> نهر متصل شد · ایجنت 0.0.0.0:7700</div>
+<div class="term-line">&nbsp;</div>
+<div class="term-line"><span class="term-muted"># already connected? the script asks before replacing.</span></div>
+<div class="term-line"><span class="term-muted"># non-interactive: append</span> <span class="term-accent">--replace</span></div>
+          </div>
+        </div>
+      </section>
+
       <section id="install" class="install-band reveal">
         <div>
-          <h2>سه قدم تا شروع</h2>
-          <p class="sub">روی سرور داخل بزنید، سپس همان خط را روی سرور خارج. پنل دوم را با <code>sudo systemctl disable --now nahr-panel</code> خاموش کنید.</p>
+          <h2>نصب سرور پنل</h2>
+          <p class="sub">روی سرور داخل، نصب کامل را اجرا کنید. سرور دوم را با کد اتصال تکخطی بالا وصل کنید تا پنل دومی نصب نشود.</p>
         </div>
         <div class="hero-command big" data-copy="curl -fsSL https://raw.githubusercontent.com/batvin/nahr/main/scripts/quick-install.sh | sudo bash">
           <code>curl -fsSL https://raw.githubusercontent.com/batvin/nahr/main/scripts/quick-install.sh | sudo bash</code>

@@ -106,6 +106,14 @@ function unitValue(file, flag, fallback) {
   }
 }
 
+/** Panel/agent ports from the installed systemd units, with local defaults. */
+export function panelPort() {
+  return parsePort(unitValue(PANEL_UNIT, 'port', DEFAULT_PANEL_PORT), DEFAULT_PANEL_PORT);
+}
+export function agentPort() {
+  return parsePort(unitValue(AGENT_UNIT, 'port', DEFAULT_AGENT_PORT), DEFAULT_AGENT_PORT);
+}
+
 export function publicAddresses() {
   const nets = Object.values(os.networkInterfaces()).flat().filter(Boolean);
   const ipv4 = nets.find((n) => n.family === 'IPv4' && !n.internal)?.address || '—';

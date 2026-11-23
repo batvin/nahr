@@ -3,6 +3,7 @@
 // بدون وابستگی خارجی: فقط ANSI و کتابخانههای استاندارد Node.
 import readline from 'node:readline/promises';
 import * as M from '../src/manager.js';
+import { encodeConnectCode, connectCommand } from '../src/connect.js';
 
 const C = {
   reset: '\x1b[0m', bold: '\x1b[1m', dim: '\x1b[2m', inverse: '\x1b[7m',
@@ -157,6 +158,34 @@ const ITEMS = [
       const r = await M.connectToPanel(url, token, d);
       out(r.ok ? `${ok()} سرور ${d.hostname} به پنل اضافه شد.`
         : `${C.red}✖ ${r.err}${C.reset}`);
+    },
+  },
+  {
+    label: 'ساخت کد اتصال تکخطی',
+    hint: 'کد nh1_ میسازم تا سرور خارج با یک دستور به پنل وصل شود.',
+    run: async () => {
+      const d = await M.detect();
+      const endpoint = await ask('آدرس عمومی ایجنت روی سرور پنل:', `http://${d.external}:${d.agent.port}`);
+      const name = await ask('نام سرور جدید (مثال outside):', 'outside');
+      const ttl = await ask('اعتبار کد به ساعت:', '24');
+      try {
+        const code = encodeConnectCode({
+          agent: endpoint,
+          panelLocal: `http://127.0.0.1:${d.panel.port}`,
+          token: d.token,
+          name,
+          ttlHours: Number(ttl),
+        });
+        heading('کد اتصال');
+        out(`  ${C.yellow}${code}${C.reset}`);
+        out('');
+        out('  دستور تکخطی روی سرور جدید (root):');
+        out(`  ${C.green}${connectCommand(code, M.INSTALLER_URL)}${C.reset}`);
+        out('');
+        out(`  ${C.dim}کد را مانند توکن نگه دارید؛ بعد از انقضاء کد جدید بسازید.${C.reset}`);
+      } catch (err) {
+        out(`${C.red}✖ ${err.message}${C.reset}`);
+      }
     },
   },
   {

@@ -5,6 +5,8 @@ import { TRANSPORTS, TRANSPORT_INFO } from '../src/transports.js';
 import { runBench, subscribe as benchSubscribe } from '../src/bench.js';
 import { getState } from '../src/store.js';
 import { ROOT } from '../src/util.js';
+import { INSTALLER_URL, readToken, panelPort, agentPort } from '../src/manager.js';
+import { encodeConnectCode, applyConnect, connectCommand, localIPv4, decodeConnectCode } from '../src/connect.js';
 
 const args = process.argv.slice(2);
 const command = args[0] || 'panel';
@@ -97,6 +99,50 @@ async function benchCommand() {
   process.exit(0);
 }
 
+async function connectCodeCommand() {
+  // On an installed server the panel state lives in /var/lib/nahr/panel, not in the repo.
+  const token = process.env.NAHR_TOKEN || readToken() || getState().secret;
+  const port = Number(flag('panel-port', panelPort()));
+  const agent = flag('agent', flag('panel', process.env.NAHR_AGENT_ENDPOINT || '')) || `http://${localIPv4()}:${agentPort()}`;
+  const code = encodeConnectCode({
+    agent,
+    panelLocal: flag('panel-local', process.env.NAHR_PANEL_LOCAL || `http://127.0.0.1:${port}`),
+    token,
+    name: flag('name', flag('for', '')),
+    ttlHours: Number(flag('ttl', 24)),
+  });
+  console.log(code);
+  console.log(`\n  ${connectCommand(code, INSTALLER_URL)}`);
+  console.log(`\n  اعتبار کد: ${flag('ttl', 24)} ساعت — آن را مانند توکن نگه دارید.`);
+}
+
+async function agentConnectCommand() {
+  const code = flag('code', '');
+  if (!code) {
+    console.error('کد اتصال لازم است: node bin/nahr.js agent-connect --code nh1_...');
+    process.exit(1);
+  }
+  const info = decodeConnectCode(code);
+  const result = await applyConnect({
+    code,
+    envFile: flag('env', process.env.NAHR_CONNECT_ENV || ''),
+    agentPort: Number(flag('port', 7700)),
+    replace: args.includes('--replace') || process.env.NAHR_REPLACE === '1',
+    host: flag('host', ''),
+  });
+  if (result.needsConfirm) {
+    console.error('این سرور از قبل به پنل متصل است؛ برای جایگزینی --replace را اضافه کنید.');
+    if (result.duplicate) console.error(`  سرور موجود: ${result.duplicate.name || ''} (${result.duplicate.host || ''})`);
+    process.exit(2);
+  }
+  if (!result.ok) {
+    console.error(`خطا: ${result.err}`);
+    process.exit(1);
+  }
+  console.log(`${info.agent} ← ثبت شد: ${result.server.name} (${result.server.host}:${result.server.agentPort})`);
+  console.log(`id: ${result.server.id}`);
+}
+
 function help() {
   console.log(`
 نهر — تونل رمزنگاری شده با پنل وب و محک داخلی
@@ -105,13 +151,19 @@ function help() {
   node bin/nahr.js demo    [--port 8080]       پنل به همراه ۲ ایجنت و ۵ تانل آزمایشی
   node bin/nahr.js agent   --port 7700 --id x  ایجنت روی یک سرور
   node bin/nahr.js bench   [--seconds 3]       اجرای محک بین دو سرور ثبت شده
+  node bin/nahr.js connect-code [--agent URL]  ساخت کد اتصال تکخطی (nh1_...)
+  node bin/nahr.js agent-connect --code CODE   اتصال این سرور به پنل با کد
 
   ترنسپورت‌ها: ${TRANSPORTS.join(', ')}
   مسیر داده:   ${ROOT}/data
 `);
 }
 
-const commands = { panel: panelCommand, agent: agentCommand, demo: demoCommand, bench: benchCommand, help, '--help': help, '-h': help };
+const commands = {
+  panel: panelCommand, agent: agentCommand, demo: demoCommand, bench: benchCommand,
+  'connect-code': connectCodeCommand, 'agent-connect': agentConnectCommand,
+  help, '--help': help, '-h': help,
+};
 try {
   await (commands[command] || help)();
 } catch (err) {

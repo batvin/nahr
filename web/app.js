@@ -325,6 +325,13 @@ function viewSettings() {
       <div class="card" style="margin-top:14px;background:var(--panel-2)"><b class="small">کلید مشترک</b><div class="code" style="margin-top:6px">${esc(S.state.secret)}</div><p class="small faint">همین کلید باید روی ایجنتها تنظیم شود.</p></div>
     </div>
   </div>
+  <div class="card" style="margin-top:16px"><div class="card-head"><h3>اتصال سرور جدید با یک کد</h3></div>
+    <p class="small muted">آدرس عمومی ایجنت روی سرور پنل را بدهید تا کدی بسازد که با آن، سرور خارج تنها با یک دستور وصل میشود. پنل روی 127.0.0.1 باقی میماند و نیازی به باز کردن پورت آن نیست.</p>
+    <label class="field"><span>آدرس عمومی ایجنت (مثال http://IP:7700)</span><input id="connect-agent" dir="ltr" placeholder="http://87.107.81.145:7700"></label>
+    <label class="field"><span>نام سرور جدید</span><input id="connect-name" dir="ltr" placeholder="outside"></label>
+    <button class="btn btn-primary btn-sm" data-action="make-connect-code">ساخت کد اتصال</button>
+    <div id="connect-result" class="code" style="margin-top:10px;display:none;word-break:break-all"></div>
+  </div>
   <div class="card" style="margin-top:16px"><div class="card-head"><h3>دربارهٔ نهر</h3></div>
     <p class="small muted">نهر یک پیادهسازی مستقل است: تونل رمزنگاری شده با X25519 + AES-GCM، مالتیپلکسر جریانها، پنل وب و محک داخلی. پنج ترنسپورت دارد و هیچ کدی از پروژهٔ دیگری کپی نشده است.</p>
     <a class="btn btn-ghost btn-sm" href="/docs" target="_blank">مطالعهٔ مستندات</a>
@@ -505,6 +512,24 @@ document.addEventListener('click', async (e) => {
       const r = await post('/bench/apply', { id: S.bench.id, key: btn.dataset.key });
       toast(`اعمال شد: ${LABELS[r.tunnel.transport]}`);
       return loadAll();
+    }
+    if (a === 'make-connect-code') {
+      const agent = $('#connect-agent').value.trim();
+      const name = $('#connect-name').value.trim();
+      const params = new URLSearchParams({ ttl: '24' });
+      if (agent) params.set('agent', agent);
+      if (name) params.set('name', name);
+      const r = await api(`/connect-code?${params}`);
+      const box = $('#connect-result');
+      box.style.display = 'block';
+      box.innerHTML = `<div>${esc(r.code)}</div><div style="margin-top:8px">${esc(r.command)}</div>`;
+      try {
+        await navigator.clipboard.writeText(r.command);
+        toast('دستور تکخطی کپی شد');
+      } catch {
+        toast('کد ساخته شد');
+      }
+      return;
     }
     if (a === 'save-settings') {
       await post('/settings', {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePort, maskToken, formatUptime, statusLines, VERSION, DEFAULT_PANEL_PORT } from '../src/manager.js';
+import { parsePort, maskToken, formatUptime, statusLines, VERSION, DEFAULT_PANEL_PORT, panelPort, agentPort } from '../src/manager.js';
 
 test('manager parses ports with a safe fallback', () => {
   assert.equal(parsePort('18080'), 18080);
@@ -10,6 +10,11 @@ test('manager parses ports with a safe fallback', () => {
   assert.equal(parsePort('abc', 99), 99);
   assert.equal(parsePort('12.5', 99), 99);
   assert.equal(DEFAULT_PANEL_PORT, 18080);
+});
+
+test('manager falls back to default ports without systemd units', () => {
+  assert.equal(panelPort(), 18080);
+  assert.equal(agentPort(), 7700);
 });
 
 test('manager masks the shared token in the UI', () => {
