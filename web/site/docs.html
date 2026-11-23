@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مستندات نهر</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/site.css" />
+  </head>
+  <body>
+    <header><div class="wrap"><a class="logo" href="/"><img src="/favicon.svg" alt="" /> نهر</a>
+      <nav><a href="/">خانه</a><a href="#install">نصب</a><a href="#transports">ترنسپورتها</a><a href="#bench">محک</a><a class="btn primary" href="/panel">پنل</a></nav>
+    </div></header>
+    <main class="wrap doc">
+      <h1 style="font-size:36px;margin-bottom:4px">مستندات</h1>
+      <p class="sub">همهٔ آنچه برای اجرا و آزمایش نهر لازم است</p>
+
+      <h2 id="install">نصب و اجرا</h2>
+      <p>نیاز: Node.js ۲۰ یا بالاتر. نصب وابستگیها:</p>
+      <div class="codeblock">cd nahr
+npm install
+npm run demo     # یا: npm start</div>
+      <ul>
+        <li><code>npm start</code> تنها پنل، وبسایت و مستندات را روی پورت ۸۰۸۰ بالا میآورد.</li>
+        <li><code>npm run demo</code> علاوه بر پنل، دو ایجنت محلی و پنج تانل آزمایشی میسازد.</li>
+        <li><code>npm run bench</code> محک را از خط فرمان بین دو سرور ثبتشده اجرا میکند.</li>
+      </ul>
+
+      <h2>معماری</h2>
+      <p>ورودی (entry) یک پروکسی SOCKS5 ارائه میدهد. هر درخواست کاربر به یک جریان در مالتیپلکسر تبدیل میشود. جریانها روی یک یا چند اتصال ترنسپورت با رمزنگاری AES-GCM ارسال میشوند و خروجی (exit) آنها را به مقصد واقعی وصل میکند.</p>
+      <div class="note">دست دادن کلید با X25519 انجام میشود و توکن مشترک تنها زمانی میپذیرد که طرف مقابل HMAC درستی را ارائه دهد. کلیدها با HKDF مشتق میشوند؛ نشت توکن، ترافیک ضبطشدهٔ گذشته را باز نمیکند.</div>
+
+      <h2 id="transports">ترنسپورتها</h2>
+      <table>
+        <thead><tr><th>ترنسپورت</th><th>زیرلایه</th><th>بهترین کاربرد</th></tr></thead>
+        <tbody>
+          <tr><td><code>tcp</code></td><td>TCP</td><td>سادگی، اتصال جداگانه برای هر جریان</td></tr>
+          <tr><td><code>tcpmux</code></td><td>چند اتصال TCP</td><td>پیشفرض؛ مسیر تمیز، بهترین throughput</td></tr>
+          <tr><td><code>ws</code></td><td>WebSocket / HTTP</td><td>پشت CDN یا پروکسی معکوس</td></tr>
+          <tr><td><code>wss</code></td><td>WebSocket / TLS</td><td>وقتی لازم است شبیه HTTPS دیده شود</td></tr>
+          <tr><td><code>udp</code></td><td>UDP + ARQ</td><td>مسیر پراتلاف، بازی، صوت</td></tr>
+        </tbody>
+      </table>
+      <p class="small">ترنسپورت UDP از نوع KCP الهام گرفته شده ولی با آن سازگاری سیمی ندارد. بستهها با nonce تصادفی مهروموم میشوند، شمارهٔ توالی و ACK تجمعی دارند و بستهٔ گمشده دوباره فرستاده میشود.</p>
+
+      <h2>پروفایلها</h2>
+      <ul>
+        <li><b>متعادل (balanced):</b> ۳ اتصال، MTU ۱۲۰۰ — حالت عمومی</li>
+        <li><b>حداکثر سرعت (ultraspeed):</b> ۶ اتصال، MTU ۱۴۰۰ — انتقال حجیم</li>
+        <li><b>بازی (gaming):</b> ۲ اتصال، MTU ۱۰۰۰، بازارسازی سریعتر — تأخیر پایدار</li>
+      </ul>
+
+      <h2 id="bench">محک چگونه کار میکند؟</h2>
+      <ol>
+        <li>برای هر ترنسپورت و هر دو جهت (مستقیم و معکوس) یک شنوندهٔ موقت روی One سرور و یک شمارنده روی سرور دیگر راهاندازی میشود.</li>
+        <li>مرحلهٔ کاوش: چند ping کوتاه برای تشخیص عبور و تأخیر.</li>
+        <li>مرحلهٔ سرعت: سه گزینهٔ برتر، دانلود و آپلود چندجریانه.</li>
+        <li>امتیاز: weighted speed + latency + stability. وزنها بسته به پروفایل تغییر میکند.</li>
+        <li>دکمهٔ «اعمال بهترین» ترنسپورت تانل را عوض میکند.</li>
+      </ol>
+      <div class="note">محک از ترافیک واقعی استفاده میکند و روی مسیر شما اجرا میشود؛ نتایج یک نمونهاند، چند بار اجرا کرده و میانه را در نظر بگیرید.</div>
+
+      <h2>سرور واقعی</h2>
+      <div class="codeblock">node bin/nahr.js agent --port 7700 --id s1 --host 0.0.0.0</div>
+      <p>سپس در پنل، تب «سرورها» → «افزودن سرور»، آدرس و پورت ایجنت را وارد کنید. توکن پیشفرض همان کلید مشترک پنل است (قابل مشاهده در تنظیمات). پورت ۷۷۰۰ ایجنت را در فایروال باز کنید.</p>
+
+      <h2>سوالات رایج</h2>
+      <h3>آیا باید Rust نصب کنم؟</h3>
+      <p>خیر. نهر کاملاً با Node.js نوشته شده و به کامپایلر یا ابزار ساخت نیازی ندارد.</p>
+      <h3>آیا کد پروژهٔ دیگری در آن هست؟</h3>
+      <p>خیر. نهر پیادهسازی مستقلی است و از Licence کاربر دیگری استفاده نمیکند.</p>
+    </main>
+  </body>
+</html>

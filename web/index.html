@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>نهر — پنل</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="/" title="وبسایت نهر">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40"><path d="M6 30c6-12 10-3 14-12S30 8 34 4" /><path d="M6 36c7-10 11-2 16-11s8-7 12-10" opacity=".45" /></svg>
+          </span>
+          <span class="brand-text"><b>نهر</b><small>تونل هوشمند</small></span>
+        </a>
+        <nav class="nav" aria-label="منو">
+          <button class="nav-item" data-route="overview"><span class="nav-ico" data-icon="grid"></span><span>نمای کلی</span></button>
+          <button class="nav-item" data-route="servers"><span class="nav-ico" data-icon="server"></span><span>سرورها</span><span class="nav-count" id="count-servers">0</span></button>
+          <button class="nav-item" data-route="tunnels"><span class="nav-ico" data-icon="tunnel"></span><span>تانل‌ها</span><span class="nav-count" id="count-tunnels">0</span></button>
+          <button class="nav-item" data-route="bench"><span class="nav-ico" data-icon="gauge"></span><span>محک</span><span class="nav-badge">جدید</span></button>
+          <button class="nav-item" data-route="logs"><span class="nav-ico" data-icon="log"></span><span>گزارشات</span></button>
+          <div class="nav-sep"></div>
+          <button class="nav-item" data-route="settings"><span class="nav-ico" data-icon="settings"></span><span>تنظیمات</span></button>
+          <a class="nav-item" href="/docs" target="_blank"><span class="nav-ico" data-icon="book"></span><span>مستندات</span><span class="nav-ico-out">↗</span></a>
+          <a class="nav-item" href="/" target="_blank"><span class="nav-ico" data-icon="globe"></span><span>وبسایت</span><span class="nav-ico-out">↗</span></a>
+        </nav>
+        <div class="side-foot">
+          <div class="health"><span class="dot" id="health-dot"></span><span id="health-text">در حال اتصال…</span></div>
+          <small>نسخه ۰٫۱٫۰ · ساخته شده از صفر</small>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <button class="icon-btn menu-btn" id="menu-btn" aria-label="باز کردن منو">☰</button>
+          <div class="crumb"><span>نهر</span><span class="crumb-sep">/</span><b id="crumb-title">نمای کلی</b></div>
+          <span class="grow"></span>
+          <span class="top-pill" id="demo-pill">دمو خاموش</span>
+          <button class="icon-btn" id="theme-btn" title="تغییر تم" aria-label="تغییر تم">◐</button>
+          <button class="btn btn-primary btn-sm" id="quick-bench">شروع محک</button>
+        </header>
+        <div class="view" id="view" aria-live="polite"></div>
+      </main>
+    </div>
+    <div class="modal-root" id="modal-root"></div>
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
